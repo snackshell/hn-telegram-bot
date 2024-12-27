@@ -1,8 +1,8 @@
 const { logger } = require('../utils/logger');
 
-async function sendToDestinations(bot, message, destinations) {
+async function sendToDestinations(bot, messageObject, destinations) {
   const results = [];
-  
+
   for (const destination of destinations) {
     try {
       if (destination.includes('@')) {
@@ -10,14 +10,20 @@ async function sendToDestinations(bot, message, destinations) {
         
         if (threadId) {
           // Send to topic thread
-          await bot.sendMessage(`@${groupName}`, message, {
+          await bot.sendMessage(`@${groupName}`, messageObject.text, {
             parse_mode: 'HTML',
-            message_thread_id: parseInt(threadId)
+            disable_web_page_preview: true,
+            message_thread_id: parseInt(threadId),
+            reply_markup: messageObject.reply_markup
           });
           logger.info(`Message sent to group @${groupName} thread ${threadId}`);
         } else {
           // Send to regular group or channel
-          await bot.sendMessage(destination, message, { parse_mode: 'HTML' });
+          await bot.sendMessage(destination, messageObject.text, { 
+            parse_mode: 'HTML',
+            disable_web_page_preview: true,
+            reply_markup: messageObject.reply_markup 
+          });
           logger.info(`Message sent to destination ${destination}`);
         }
       }
