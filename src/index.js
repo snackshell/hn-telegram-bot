@@ -7,7 +7,43 @@ const { sendToDestinations } = require('./services/messageService');
 const { scheduleDaily } = require('./utils/scheduler');
 
 // Initialize bot with simple polling
-const bot = new TelegramBot(config.token, { polling: true });
+const bot = new TelegramBot(config.token, { 
+  polling: true,
+  onlyFirstMatch: true
+});
+
+// Add error handlers
+bot.on('polling_error', (error) => {
+  if (error.code === 'ETELEGRAM' && error.message.includes('401')) {
+    logger.error('Bot token is invalid. Please check your TELEGRAM_BOT_TOKEN environment variable.');
+    process.exit(1); // Exit the process to trigger a restart
+  }
+  logger.error('Polling error:', error);
+});
+
+bot.on('error', (error) => {
+  logger.error('Bot error:', error);
+});
+
+// Start command handler
+bot.onText(/\/start/, async (msg) => {
+  const welcomeMessage = `Welcome to Hacker News Bot! 🚀\n\n` +
+    `Available commands:\n` +
+    `/getnews - Get the latest top news\n` +
+    `/help - Show this help message`;
+    
+  await bot.sendMessage(msg.chat.id, welcomeMessage);
+});
+
+// Help command handler
+bot.onText(/\/help/, async (msg) => {
+  const helpMessage = `Hacker News Bot Commands:\n\n` +
+    `🔹 /getnews - Fetch top 10 stories from Hacker News\n` +
+    `🔹 /help - Show this help message\n\n` +
+    `The bot also automatically posts updates daily at 8:00 AM EAT.`;
+    
+  await bot.sendMessage(msg.chat.id, helpMessage);
+});
 
 // Command handlers
 bot.onText(/\/getnews/, async (msg) => {
