@@ -1,10 +1,9 @@
 {
   "name": "hn-telegram-bot",
   "version": "1.0.0",
-  "description": "A Telegram bot that sends daily top stories from Hacker News",
-  "private": true,
+  "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "NODE_ENV=production node src/index.js",
     "dev": "nodemon src/index.js"
   },
   "dependencies": {
@@ -13,12 +12,5 @@
     "node-schedule": "^2.1.1",
     "axios": "^1.6.2",
     "winston": "^3.11.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.2"
-  },
-  "engines": {
-    "node": ">=14.0.0"
-  },
-  "license": "MIT"
+  }
 }
