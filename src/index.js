@@ -37,13 +37,17 @@ bot.onText(/\/help/, async (msg) => {
 bot.onText(/\/getnews/, async (msg) => {
   try {
     const stories = await fetchTopStories();
-    const message = formatStoryMessage(stories);
+    const messageObject = formatStoryMessage(stories);
     
-    // Send to the requesting chat
-    await bot.sendMessage(msg.chat.id, message, { parse_mode: 'HTML' });
+    // Only send to the requesting user
+    await bot.sendMessage(msg.chat.id, messageObject.text, { 
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+      reply_markup: messageObject.reply_markup
+    });
     
-    // Send to all configured destinations
-    await sendToDestinations(bot, message, config.destinations);
+    // Remove this line to prevent sending to all destinations
+    // await sendToDestinations(bot, messageObject, config.destinations);
   } catch (error) {
     logger.error('Error handling /getnews command:', error);
     await bot.sendMessage(msg.chat.id, '⚠️ Failed to fetch stories. Please try again later.');
@@ -52,9 +56,17 @@ bot.onText(/\/getnews/, async (msg) => {
 
 // Daily task function
 const dailyUpdateTask = async () => {
-  const stories = await fetchTopStories();
-  const message = formatStoryMessage(stories);
-  await sendToDestinations(bot, message, config.destinations);
+  try {
+    const stories = await fetchTopStories();
+    const message = formatStoryMessage(stories);
+    await sendToDestinations(bot, message, config.destinations);
+  } catch (error) {
+    logger.error('Error in scheduled task:', error);
+    // Optionally send an error message to a designated channel
+    if (config.errorChannelId) {
+      await bot.sendMessage(config.errorChannelId, '⚠️ Daily news update failed.');
+    }
+  }
 };
 
 // Start the bot
